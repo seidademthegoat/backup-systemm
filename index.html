@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SEID Backup System</title>
+
+    <!-- Google Login Library -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <style>
+        /* ---- Reset & Base ---- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+
+        /* ---- Auth ---- */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 48px 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-box .logo {
+            font-size: 48px;
+            margin-bottom: 4px;
+        }
+        .auth-box h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .auth-box .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        .auth-box .security-badge {
+            display: inline-block;
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #66bb6a;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #ef5350;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #66bb6a;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        #google-signin {
+            display: flex;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        #google-signin>div {
+            min-height: 50px;
+        }
+
+        .auth-box .footer-text {
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ---- Dashboard ---- */
+        .dashboard {
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px 24px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-left h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-left .badge {
+            font-size: 12px;
+            background: rgba(102, 126, 234, 0.2);
+            padding: 2px 12px;
+            border-radius: 20px;
+            color: #667eea;
+            -webkit-text-fill-color: #667eea;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .header-right .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 16px 6px 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50px;
+        }
+        .header-right .user-info img {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+        .header-right .user-info .email {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .header-right .btn-logout {
+            padding: 8px 20px;
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 10px;
+            color: #ef5350;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .header-right .btn-logout:hover {
+            background: rgba(244, 67, 54, 0.25);
+        }
+
+        /* ---- Content ---- */
+        .content {
+            display: flex;
+            gap: 20px;
+            min-height: 500px;
+        }
+
+        .folders-panel {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .folders-panel h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 16px;
+        }
+
+        .folder-item {
+            padding: 12px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+        .folder-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .folder-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        .folder-item .name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .folder-item .badge {
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 10px;
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .folder-item .del {
+            color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.3s;
+            font-size: 18px;
+        }
+        .folder-item .del:hover {
+            color: #ef5350;
+        }
+
+        .add-folder {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+        .add-folder input {
+            flex: 1;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .add-folder input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .add-folder input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .add-folder button {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .add-folder button:hover {
+            transform: scale(1.05);
+        }
+
+        .empty-folders {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 30px 0;
+            font-size: 14px;
+        }
+
+        .backups-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .backups-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .backups-panel .panel-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .backups-panel .panel-header .folder-name {
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+        }
+
+        .upload-area {
+            padding: 32px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .upload-area:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .upload-area .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        .upload-area .text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .upload-area .sub {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 4px;
+        }
+        .upload-area input {
+            display: none;
+        }
+
+        .backup-item {
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .backup-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .backup-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .backup-info .icon {
+            font-size: 28px;
+        }
+        .backup-info .name {
+            font-weight: 500;
+            font-size: 15px;
+        }
+        .backup-info .details {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+        }
+
+        .backup-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .backup-actions button {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .backup-actions button:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-history {
+            background: rgba(33, 150, 243, 0.2);
+            color: #64b5f6;
+        }
+        .btn-history:hover {
+            background: rgba(33, 150, 243, 0.3);
+        }
+        .btn-download {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+        }
+        .btn-download:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        .btn-restore {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ffb74d;
+        }
+        .btn-restore:hover {
+            background: rgba(255, 152, 0, 0.3);
+        }
+        .btn-delete {
+            background: rgba(244, 67, 54, 0.2);
+            color: #ef5350;
+        }
+        .btn-delete:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+
+        .empty-backups {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 40px 0;
+        }
+
+        .history-item {
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .history-item.current {
+            border-color: rgba(76, 175, 80, 0.3);
+            background: rgba(76, 175, 80, 0.05);
+        }
+        .history-item .version-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .history-item.current .version-badge {
+            background: #4CAF50;
+        }
+        .history-item .date {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .history-item .size {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .history-item .current-label {
+            color: #66bb6a;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .history-item .actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .back-btn {
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .storage-info {
+            margin-top: 20px;
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .storage-info .stats {
+            display: flex;
+            gap: 20px;
+        }
+        .storage-info .stats span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ---- Toast ---- */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        .toast.success {
+            background: linear-gradient(135deg, #2e7d32, #43a047);
+        }
+        .toast.error {
+            background: linear-gradient(135deg, #c62828, #ef5350);
+        }
+        .toast.info {
+            background: linear-gradient(135deg, #1a237e, #3f51b5);
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .toast .close {
+            margin-left: 16px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .toast .close:hover {
+            opacity: 1;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            .folders-panel {
+                width: 100%;
+                max-height: 250px;
+            }
+            .backups-panel {
+                max-height: 400px;
+            }
+            .auth-box {
+                padding: 32px 20px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .header-right {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .backup-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .backup-actions {
+                justify-content: flex-start;
+            }
+            .storage-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            .storage-info .stats {
+                justify-content: center;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app"></div>
+
+    <script>
+        // ============================================================
+        // YOUR GOOGLE CLIENT ID
+        // ============================================================
+
+        const GOOGLE_CLIENT_ID = '278581077479-t8amhoqekhfi4icuur5m1po5idirqik2.apps.googleusercontent.com';
+
+        // Email Settings
+        const EMAIL_CONFIG = {
+            from: 'SEID',
+            email: 'neouvaschool@gmail.com',
+            appPassword: 'suri zlwl lhsv pgtw'
+        };
+
+        // ============================================================
+        // STATE
+        // ============================================================
+
+        let currentUser = null;
+        let folders = [];
+        let currentFolder = null;
+        let viewingHistory = false;
+        let historyData = [];
+        let selectedBackup = null;
+        let error = '';
+        let success = '';
+        let googleInitialized = false;
+
+        // ============================================================
+        // DATA STORAGE
+        // ============================================================
+
+        function loadData() {
+            try {
+                const data = localStorage.getItem('backupSystemData');
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    folders = parsed.folders || [];
+                    currentUser = parsed.currentUser || null;
+                    return true;
+                }
+            } catch (e) { console.error('Error loading data:', e); }
+            return false;
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('backupSystemData', JSON.stringify({
+                    folders: folders,
+                    currentUser: currentUser
+                }));
+            } catch (e) {
+                showToast('Error saving data. Storage might be full!', 'error');
+            }
+        }
+
+        // ============================================================
+        // HELPERS
+        // ============================================================
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+        }
+
+        function generatePassword() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        }
+
+        function showToast(message, type = 'info') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                ${message}
+                <span class="close" onclick="this.parentElement.remove()">x</span>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 8000);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        // ============================================================
+        // SEND EMAIL
+        // ============================================================
+
+        function sendEmail(to, name, password, loginLink) {
+            const subject = 'Welcome to SEID Backup System';
+
+            const htmlBody = `
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    background-color: #f4f6f8;
+                    margin: 0;
+                    padding: 40px 20px;
+                }
+                .container {
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background: #ffffff;
+                    border-radius: 16px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+                    overflow: hidden;
+                }
+                .header {
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    padding: 40px 30px;
+                    text-align: center;
+                }
+                .header h1 {
+                    color: #ffffff;
+                    font-size: 28px;
+                    font-weight: 700;
+                    margin: 0;
+                    letter-spacing: 1px;
+                }
+                .header p {
+                    color: rgba(255,255,255,0.8);
+                    font-size: 16px;
+                    margin: 8px 0 0 0;
+                }
+                .content {
+                    padding: 40px 30px;
+                }
+                .content h2 {
+                    color: #333;
+                    font-size: 22px;
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                }
+                .content .greeting {
+                    color: #555;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    margin-bottom: 24px;
+                }
+                .info-box {
+                    background: #f8f9fc;
+                    border-radius: 12px;
+                    padding: 20px 24px;
+                    margin-bottom: 24px;
+                    border-left: 4px solid #667eea;
+                }
+                .info-box .label {
+                    color: #888;
+                    font-size: 13px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                .info-box .value {
+                    color: #333;
+                    font-size: 16px;
+                    font-weight: 600;
+                    margin-top: 4px;
+                    word-break: break-all;
+                }
+                .info-box .password-box {
+                    background: #ffffff;
+                    border: 2px dashed #667eea;
+                    border-radius: 8px;
+                    padding: 12px 16px;
+                    margin-top: 8px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #667eea;
+                    letter-spacing: 1px;
+                    text-align: center;
+                }
+                .btn-container {
+                    text-align: center;
+                    margin: 32px 0 20px 0;
+                }
+                .btn-login {
+                    display: inline-block;
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: #ffffff;
+                    padding: 14px 48px;
+                    border-radius: 50px;
+                    text-decoration: none;
+                    font-size: 16px;
+                    font-weight: 600;
+                    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35);
+                    transition: all 0.3s;
+                }
+                .btn-login:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.45);
+                }
+                .footer {
+                    text-align: center;
+                    padding: 24px 30px;
+                    border-top: 1px solid #eee;
+                    color: #999;
+                    font-size: 13px;
+                    line-height: 1.6;
+                }
+                .footer .brand {
+                    color: #667eea;
+                    font-weight: 600;
+                }
+                .note {
+                    background: #fff8e1;
+                    border-radius: 8px;
+                    padding: 16px 20px;
+                    margin-top: 20px;
+                    font-size: 14px;
+                    color: #666;
+                    border-left: 4px solid #ffc107;
+                }
+                .note strong {
+                    color: #333;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>SEID Backup</h1>
+                    <p>Secure & Reliable Backup System</p>
+                </div>
+                <div class="content">
+                    <h2>Welcome, ${name}!</h2>
+                    <p class="greeting">
+                        Your account has been successfully created with Google Sign-In.
+                        Here are your login details:
+                    </p>
+
+                    <div class="info-box">
+                        <div class="label">Email Address</div>
+                        <div class="value">${to}</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="label">Auto-Generated Password</div>
+                        <div class="password-box">${password}</div>
+                        <div style="margin-top:8px;font-size:13px;color:#888;">
+                            You can login with Google or use this password
+                        </div>
+                    </div>
+
+                    <div class="btn-container">
+                        <a href="${loginLink}" class="btn-login">Login to Your Account</a>
+                    </div>
+
+                    <div class="note">
+                        <strong>Important:</strong> Keep this password safe.
+                        You can change it anytime from your account settings.
+                    </div>
+                </div>
+                <div class="footer">
+                    <span class="brand">SEID Backup</span> &bull; Your data is protected by Google's security
+                    <br>
+                    This is an automated message, please do not reply.
+                </div>
+            </div>
+        </body>
+        </html>
+            `;
+
+            try {
+                const mailtoLink =
+                    `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(htmlBody)}`;
+                window.open(mailtoLink);
+                showToast('Welcome email opened in your email client!', 'success');
+                return true;
+            } catch (error) {
+                console.error('Email error:', error);
+                showToast('Could not open email. Please check your email manually.', 'error');
+                return false;
+            }
+        }
+
+        // ============================================================
+        // GOOGLE LOGIN
+        // ============================================================
+
+        function initGoogleLogin() {
+            if (googleInitialized) return;
+
+            try {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleLogin,
+                    cancel_on_tap_outside: false
+                });
+
+                google.accounts.id.renderButton(
+                    document.getElementById('google-signin'), {
+                        theme: 'outline',
+                        size: 'large',
+                        width: '100%',
+                        text: 'signin_with',
+                        logo_alignment: 'left'
+                    }
+                );
+
+                googleInitialized = true;
+            } catch (e) {
+                console.error('Google Login error:', e);
+                showToast('Google Login error. Check console.', 'error');
+            }
+        }
+
+        function handleGoogleLogin(response) {
+            try {
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+
+                if (!payload.email_verified) {
+                    showToast('Please verify your Google account first.', 'error');
+                    return;
+                }
+
+                const userEmail = payload.email;
+                const userName = payload.name || userEmail.split('@')[0];
+                const userPicture = payload.picture;
+
+                const existingUser = folders.find(f => f.userEmail === userEmail);
+
+                if (!existingUser) {
+                    const password = generatePassword();
+                    const loginLink = window.location.href;
+
+                    sendEmail(userEmail, userName, password, loginLink);
+
+                    currentUser = {
+                        id: generateId(),
+                        email: userEmail,
+                        name: userName,
+                        picture: userPicture,
+                        password: password,
+                        googleId: payload.sub,
+                        verified: true,
+                        created: Date.now()
+                    };
+
+                    showToast(`Welcome ${userName}! Check your email for your password.`, 'success');
+                } else {
+                    const storedData = JSON.parse(localStorage.getItem('backupSystemData') || '{}');
+                    const savedUser = storedData.currentUser;
+
+                    if (savedUser && savedUser.email === userEmail) {
+                        currentUser = savedUser;
+                        if (userPicture) currentUser.picture = userPicture;
+                        showToast(`Welcome back, ${currentUser.name}!`, 'success');
+                    } else {
+                        currentUser = {
+                            id: generateId(),
+                            email: userEmail,
+                            name: userName,
+                            picture: userPicture,
+                            googleId: payload.sub,
+                            verified: true,
+                            created: Date.now()
+                        };
+                        showToast(`Welcome ${userName}!`, 'success');
+                    }
+                }
+
+                saveData();
+                render();
+
+            } catch (e) {
+                console.error('Google login error:', e);
+                showToast('Google login failed. Please try again.', 'error');
+            }
+        }
+
+        // ============================================================
+        // RENDER
+        // ============================================================
+
+        function render() {
+            const app = document.getElementById('app');
+
+            if (!currentUser) {
+                app.innerHTML = renderAuth();
+                setTimeout(initGoogleLogin, 100);
+            } else {
+                app.innerHTML = renderDashboard();
+                attachDashboardEvents();
+            }
+        }
+
+        // ============================================================
+        // AUTH
+        // ============================================================
+
+        function renderAuth() {
+            return `
+                <div class="auth-container">
+                    <div class="auth-box">
+                        <h1>Backup System</h1>
+                        <p class="subtitle">Secure backup system with Google authentication</p>
+
+                        <div class="security-badge">Google Verified Login</div>
+
+                        ${error ? `<div class="error">${error}</div>` : ''}
+                        ${success ? `<div class="success">${success}</div>` : ''}
+
+                        <div id="google-signin"></div>
+
+                        <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.4);">
+                            Sign in with Google for secure access
+                        </div>
+
+                        <div class="footer-text">
+                            Your account is protected by Google's security
+                            Welcome email will be sent after first login
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // DASHBOARD
+        // ============================================================
+
+        function renderDashboard() {
+            const userFolders = folders.filter(f => f.userEmail === currentUser.email);
+            const totalFiles = userFolders.reduce((sum, f) => sum + (f.files?.length || 0), 0);
+
+            return `
+                <div class="dashboard">
+                    <div class="dashboard-container">
+                        <div class="header">
+                            <div class="header-left">
+                                <h1>SEID Backup System</h1>
+                                <span class="badge">v2.0</span>
+                            </div>
+                            <div class="header-right">
+                                <div class="user-info">
+                                    ${currentUser.picture ? 
+                                        `<img src="${currentUser.picture}" alt="Avatar" />` :
+                                        `<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;">${currentUser.name?.[0]?.toUpperCase() || '?'}</div>`
+                                    }
+                                    <span class="email">${currentUser.email}</span>
+                                </div>
+                                <button class="btn-logout" onclick="logout()">Logout</button>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <div class="folders-panel">
+                                <h3>Folders</h3>
+
+                                ${userFolders.length === 0 ? `
+                                    <div class="empty-folders">No folders yet</div>
+                                ` : userFolders.map(f => `
+                                    <div class="folder-item ${currentFolder?.id === f.id ? 'active' : ''}"
+                                         onclick="selectFolder('${f.id}')">
+                                        <span class="name">${f.name}</span>
+                                        <span>
+                                            <span class="badge">${f.files?.length || 0}</span>
+                                            <span class="del" onclick="event.stopPropagation();deleteFolder('${f.id}')">x</span>
+                                        </span>
+                                    </div>
+                                `).join('')}
+
+                                <div class="add-folder">
+                                    <input type="text" id="folder-name" placeholder="New folder..." />
+                                    <button onclick="createFolder()">+</button>
+                                </div>
+                            </div>
+
+                            <div class="backups-panel">
+                                ${!currentFolder ? `
+                                    <div class="empty-backups">
+                                        <div style="font-size:48px;margin-bottom:12px;">Folder</div>
+                                        <h3 style="font-weight:400;">Select a folder</h3>
+                                        <p style="color:rgba(255,255,255,0.3);font-size:14px;">Choose a folder from the left panel</p>
+                                    </div>
+                                ` : viewingHistory ? renderHistory() : renderBackups()}
+                            </div>
+                        </div>
+
+                        <div class="storage-info">
+                            <div>Data stored in your browser (LocalStorage)</div>
+                            <div class="stats">
+                                <span>Folders: ${userFolders.length}</span>
+                                <span>Files: ${totalFiles}</span>
+                                <span>Google Auth</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // BACKUPS
+        // ============================================================
+
+        function renderBackups() {
+            const files = currentFolder.files || [];
+
+            return `
+                <div class="panel-header">
+                    <h3>Files - <span class="folder-name">${currentFolder.name}</span></h3>
+                    <span style="font-size:13px;color:rgba(255,255,255,0.3);">
+                        ${files.length} file${files.length !== 1 ? 's' : ''}
+                    </span>
+                </div>
+
+                <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" onchange="uploadFile(this)" multiple />
+                    <div class="icon">Upload</div>
+                    <div class="text">Click to upload files</div>
+                    <div class="sub">Max 10MB per file - Stored in your browser</div>
+                </div>
+
+                ${files.length === 0 ? `
+                    <div class="empty-backups">
+                        <div style="font-size:32px;margin-bottom:8px;">Empty</div>
+                        <p style="color:rgba(255,255,255,0.3);">No backups in this folder</p>
+                    </div>
+                ` : files.map(f => `
+                    <div class="backup-item fade-in">
+                        <div class="backup-info">
+                            <div class="icon">File</div>
+                            <div>
+                                <div class="name">${f.originalName || f.name}</div>
+                                <div class="details">
+                                    Version ${f.version || 1} - ${formatFileSize(f.size)} - 
+                                    ${new Date(f.date).toLocaleString()}
+                                    ${f.history?.length ? ` - ${f.history.length} versions` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="backup-actions">
+                            ${f.history?.length ? `
+                                <button class="btn-history" onclick="viewHistory('${f.id}')">History</button>
+                            ` : ''}
+                            <button class="btn-download" onclick="downloadFile('${f.id}')">Download</button>
+                            <button class="btn-delete" onclick="deleteBackup('${f.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // ============================================================
+        // HISTORY
+        // ============================================================
+
+        function renderHistory() {
+            return `
+                <button class="back-btn" onclick="viewingHistory=false;render()">Back to files</button>
+                <h3 style="margin-bottom:16px;">Version History</h3>
+
+                ${historyData.map(h => `
+                    <div class="history-item ${h.isCurrent ? 'current' : ''}">
+                        <div>
+                            <span class="version-badge">v${h.version}</span>
+                            <span class="date">${new Date(h.date).toLocaleString()}</span>
+                            <span class="size">${formatFileSize(h.size)}</span>
+                            ${h.isCurrent ? '<span class="current-label">Current</span>' : ''}
+                        </div>
+                        <div class="actions">
+                            <button class="btn-download" onclick="downloadVersion('${h.version}')">Download</button>
+                            ${!h.isCurrent ? `
+                                <button class="btn-restore" onclick="restoreVersion('${h.version}')">Restore</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // ============================================================
+        // ACTIONS
+        // ============================================================
+
+        function createFolder() {
+            const input = document.getElementById('folder-name');
+            const name = input.value.trim();
+            if (!name) return;
+
+            const newFolder = {
+                id: generateId(),
+                name: name,
+                userEmail: currentUser.email,
+                files: [],
+                created: Date.now()
+            };
+
+            folders.push(newFolder);
+            currentFolder = newFolder;
+            saveData();
+            input.value = '';
+            render();
+            showToast(`Folder "${name}" created!`, 'success');
+        }
+
+        function selectFolder(id) {
+            const folder = folders.find(f => f.id === id && f.userEmail === currentUser.email);
+            if (folder) {
+                currentFolder = folder;
+                viewingHistory = false;
+                render();
+            }
+        }
+
+        function deleteFolder(id) {
+            if (!confirm('Delete this folder and all its backups?')) return;
+            const folder = folders.find(f => f.id === id);
+            folders = folders.filter(f => f.id !== id);
+            if (currentFolder?.id === id) currentFolder = null;
+            saveData();
+            render();
+            showToast(`Folder "${folder?.name}" deleted`, 'info');
+        }
+
+        function uploadFile(input) {
+            const files = input.files;
+            if (!files.length) return;
+
+            let uploaded = 0;
+            let errors = 0;
+
+            for (const file of files) {
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast(`${file.name} is too large (max 10MB)`, 'error');
+                    errors++;
+                    continue;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileData = {
+                        id: generateId(),
+                        name: file.name,
+                        originalName: file.name,
+                        size: file.size,
+                        content: e.target.result,
+                        date: Date.now(),
+                        version: 1,
+                        history: []
+                    };
+
+                    const existing = currentFolder.files.find(f => f.originalName === file.name);
+                    if (existing) {
+                        existing.history = existing.history || [];
+                        existing.history.push({
+                            version: existing.version || 1,
+                            name: existing.name,
+                            content: existing.content,
+                            size: existing.size,
+                            date: existing.date
+                        });
+                        existing.version = (existing.version || 1) + 1;
+                        existing.name = file.name;
+                        existing.content = fileData.content;
+                        existing.size = fileData.size;
+                        existing.date = Date.now();
+                        uploaded++;
+                    } else {
+                        currentFolder.files.push(fileData);
+                        uploaded++;
+                    }
+
+                    saveData();
+
+                    if (uploaded + errors === files.length) {
+                        render();
+                        showToast(`${uploaded} file${uploaded > 1 ? 's' : ''} uploaded!`, 'success');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+
+            input.value = '';
+        }
+
+        function deleteBackup(id) {
+            if (!confirm('Delete this backup?')) return;
+            const file = currentFolder.files.find(f => f.id === id);
+            currentFolder.files = currentFolder.files.filter(f => f.id !== id);
+            saveData();
+            render();
+            showToast(`"${file?.originalName}" deleted`, 'info');
+        }
+
+        function viewHistory(id) {
+            const file = currentFolder.files.find(f => f.id === id);
+            if (!file) return;
+
+            historyData = [
+                {
+                    version: file.version || 1,
+                    name: file.name,
+                    content: file.content,
+                    size: file.size,
+                    date: file.date,
+                    isCurrent: true
+                },
+                ...(file.history || []).map(h => ({
+                    ...h,
+                    isCurrent: false
+                }))
+            ].sort((a, b) => b.version - a.version);
+
+            selectedBackup = id;
+            viewingHistory = true;
+            render();
+        }
+
+        function downloadFile(id) {
+            const file = currentFolder.files.find(f => f.id === id);
+            if (!file) return;
+            downloadContent(file.content, file.originalName || file.name);
+            showToast(`Downloading ${file.originalName}`, 'info');
+        }
+
+        function downloadVersion(version) {
+            const data = historyData.find(h => h.version === version);
+            if (!data) return;
+            const file = currentFolder.files.find(f => f.id === selectedBackup);
+            downloadContent(data.content, file?.originalName || 'backup');
+            showToast(`Downloading version ${version}`, 'info');
+        }
+
+        function downloadContent(content, filename) {
+            const link = document.createElement('a');
+            link.href = content;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function restoreVersion(version) {
+            if (!confirm(`Restore to version ${version}?`)) return;
+
+            const data = historyData.find(h => h.version === version);
+            if (!data) return;
+
+            const file = currentFolder.files.find(f => f.id === selectedBackup);
+            if (!file) return;
+
+            file.history = file.history || [];
+            file.history.push({
+                version: file.version || 1,
+                name: file.name,
+                content: file.content,
+                size: file.size,
+                date: file.date
+            });
+
+            file.version = (file.version || 1) + 1;
+            file.name = data.name;
+            file.content = data.content;
+            file.size = data.size;
+            file.date = Date.now();
+
+            saveData();
+            showToast(`Restored to version ${version}!`, 'success');
+            viewingHistory = false;
+            render();
+        }
+
+        function logout() {
+            if (!confirm('Logout?')) return;
+            currentUser = null;
+            currentFolder = null;
+            saveData();
+            render();
+            showToast('Logged out successfully', 'info');
+        }
+
+        // ============================================================
+        // MAKE FUNCTIONS GLOBAL
+        // ============================================================
+
+        window.createFolder = createFolder;
+        window.selectFolder = selectFolder;
+        window.deleteFolder = deleteFolder;
+        window.uploadFile = uploadFile;
+        window.deleteBackup = deleteBackup;
+        window.viewHistory = viewHistory;
+        window.downloadFile = downloadFile;
+        window.downloadVersion = downloadVersion;
+        window.restoreVersion = restoreVersion;
+        window.logout = logout;
+        window.showToast = showToast;
+        window.handleGoogleLogin = handleGoogleLogin;
+
+        // ============================================================
+        // INIT
+        // ============================================================
+
+        function init() {
+            loadData();
+            render();
+        }
+
+        // ============================================================
+        // START
+        // ============================================================
+
+        init();
+    </script>
+
+</body>
+</html>
